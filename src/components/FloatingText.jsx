@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 
+export default function FloatingText() {
   const group = useRef();
   const textRef1 = useRef();
   const textRef2 = useRef();
