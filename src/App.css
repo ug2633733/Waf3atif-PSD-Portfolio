@@ -32,7 +32,12 @@ canvas {
   width: 100vw;
   height: 100vh;
   position: relative;
-  overflow: hidden;
+}
+
+@media (max-width: 600px) {
+  .hero-section {
+    height: 60vh;
+  }
 }
 
 /* ===== PROJECTS SECTION ===== */

@@ -1,17 +1,46 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 
-export default function FloatingText() {
   const group = useRef();
   const textRef1 = useRef();
   const textRef2 = useRef();
-  
+
+  // Gyroscope state
+  const gyro = useRef({ beta: 0, gamma: 0 });
+
+  useEffect(() => {
+    // Only add listener on mobile devices
+    const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+    if (!isMobile) return;
+
+    function handleOrientation(event) {
+      // Clamp values for smoother effect
+      gyro.current.beta = Math.max(-60, Math.min(60, event.beta || 0)); // front-back tilt
+      gyro.current.gamma = Math.max(-60, Math.min(60, event.gamma || 0)); // left-right tilt
+    }
+    window.addEventListener('deviceorientation', handleOrientation, true);
+    return () => window.removeEventListener('deviceorientation', handleOrientation, true);
+  }, []);
+
   useFrame(({ clock }) => {
     if (group.current) {
-      group.current.position.y = Math.sin(clock.getElapsedTime() / 2) * 0.5;
-      group.current.rotation.z = Math.sin(clock.getElapsedTime() / 4) * 0.05;
+      // Default floating animation
+      let y = Math.sin(clock.getElapsedTime() / 2) * 0.5;
+      let zRot = Math.sin(clock.getElapsedTime() / 4) * 0.05;
+
+      // On mobile, override with gyroscope
+      const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+      if (isMobile) {
+        // Map beta/gamma to position/rotation
+        const { beta, gamma } = gyro.current;
+        // beta: -180 (face up) to 180 (face down), gamma: -90 (left) to 90 (right)
+        y = beta / 90; // up/down tilt
+        zRot = gamma / 180; // left/right tilt
+      }
+      group.current.position.y = y;
+      group.current.rotation.z = zRot;
     }
 
     // Add subtle depth animation to text
